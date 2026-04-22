@@ -1,13 +1,15 @@
 ---
-title: "Evolució dels Moviments d'Autodeterminació (SDM)"
-author: "Anàlisi de Dades"
+title: "Evolution of Self-Determination Movements (SDM): A Quantitative Analysis (1945-2020)"
+author:
+  - name: Marc Sanjaume-Calvet
+    affiliation: Associate Professor of Political Science
+abstract: |
+  This paper analyzes the evolution of self-determination movements (SDM) globally since the end of World War II. Using the SDM dataset, we examine the growth of active movements, their regional distribution, the prevalence of violence, and the historical waves of new movement formation. Our findings suggest significant shifts in the nature of self-determination claims, particularly in the post-Cold War era.
+keywords: [Self-determination, Political Science, Conflict Studies, Sovereignty]
 date: "`r Sys.Date()`"
 output:
-  html_document:
-    theme: flatly
+  pagedown::jss_paged:
     toc: true
-    toc_float: true
-    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
