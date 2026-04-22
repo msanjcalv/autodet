@@ -1,0 +1,155 @@
+---
+title: "Evolució dels Moviments d'Autodeterminació (SDM)"
+subtitle: "Working Paper - Anàlisi Quantitativa (1945-2020)"
+author:
+  - name: Marc Sanjaume-Calvet
+    affiliation: Professor de Ciència Política
+abstract: |
+  Aquest working paper analitza l'evolució dels moviments d'autodeterminació (SDM) a nivell global des del final de la Segona Guerra Mundial. Mitjançant el dataset SDM, s'examinen el creixement dels moviments actius, la seva distribució regional, la prevalença de la violència i les onades històriques de formació de nous moviments.
+date: "`r Sys.Date()`"
+output:
+  pagedown::html_paged:
+    toc: true
+    number_sections: true
+    self_contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 5)
+library(tidyverse)
+library(ggthemes)
+library(viridis)
+library(scales)
+```
+
+# Introducció
+
+Els documents **"SDM Coding Notes I.pdf"** i **"SDM Coding Notes II.pdf"** recullen les decisions de codificació qualitativa per a cada grup i país al llarg del temps. Aquesta anàlisi utilitza el fitxer estructurat `SDM.csv` per il·lustrar l'evolució d'aquests moviments.
+
+```{r dades}
+sdm_data <- read.csv("SDM.csv", stringsAsFactors = FALSE)
+sdm_data <- sdm_data %>%
+  filter(year >= 1945 & year <= 2020) %>%
+  mutate(
+    active = as.numeric(active),
+    violsd = as.numeric(violsd),
+    region = as.character(region)
+  )
+```
+
+# Anàlisi de Resultats
+
+## Evolució Global de Moviments Actius
+
+Aquesta figura mostra el nombre total de moviments d'autodeterminació actius al món.
+
+```{r fig1}
+evolucio_global <- sdm_data %>%
+  filter(active == 1) %>%
+  group_by(year) %>%
+  summarise(total_actius = n(), .groups = "drop")
+
+ggplot(evolucio_global, aes(x = year, y = total_actius)) +
+  geom_line(color = "#2c3e50", size = 1) +
+  geom_area(fill = "#3498db", alpha = 0.3) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Evolució Global de Moviments Actius",
+    x = "Any",
+    y = "Nombre de Moviments"
+  )
+```
+
+## Dinàmiques per Regió
+
+Distribució dels moviments segons la regió geogràfica.
+
+```{r fig2}
+evolucio_regio <- sdm_data %>%
+  filter(active == 1, !is.na(region), region != "") %>%
+  group_by(year, region) %>%
+  summarise(total_actius = n(), .groups = "drop")
+
+ggplot(evolucio_regio, aes(x = year, y = total_actius, fill = region)) +
+  geom_area(alpha = 0.8, color = "white", size = 0.1) +
+  scale_fill_viridis_d(option = "turbo") +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Moviments Actius per Regió",
+    x = "Any",
+    y = "Nombre de Moviments",
+    fill = "Regió"
+  ) +
+  theme(legend.position = "bottom")
+```
+
+## Violència en els Moviments
+
+Proporció de moviments violents vs no violents.
+
+```{r fig3}
+evolucio_violencia <- sdm_data %>%
+  filter(active == 1, !is.na(violsd)) %>%
+  mutate(tipus = ifelse(violsd == 1, "Violent", "No Violent")) %>%
+  group_by(year, tipus) %>%
+  summarise(total = n(), .groups = "drop") %>%
+  group_by(year) %>%
+  mutate(proporcio = total / sum(total))
+
+ggplot(evolucio_violencia, aes(x = year, y = proporcio, fill = tipus)) +
+  geom_area(alpha = 0.8) +
+  scale_fill_manual(values = c("Violent" = "#e74c3c", "No Violent" = "#2ecc71")) +
+  scale_y_continuous(labels = percent_format()) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Proporció de Violència",
+    x = "Any",
+    y = "Percentatge",
+    fill = "Tipus"
+  )
+```
+
+## Nous Moviments per Dècada
+
+```{r fig4}
+nous_moviments <- sdm_data %>%
+  filter(fygroup == 1) %>%
+  mutate(decada = floor(year / 10) * 10) %>%
+  filter(decada >= 1940) %>%
+  group_by(decada) %>%
+  summarise(nous = n(), .groups = "drop")
+
+ggplot(nous_moviments, aes(x = factor(decada), y = nous)) +
+  geom_col(fill = "#9b59b6", alpha = 0.8) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Nous Moviments per Dècada",
+    x = "Dècada",
+    y = "Nombre"
+  )
+```
+
+## Top 15 Països
+
+```{r fig5}
+top_paisos <- sdm_data %>%
+  filter(active == 1) %>%
+  group_by(country) %>%
+  summarise(anys_acumulats = n(), .groups = "drop") %>%
+  arrange(desc(anys_acumulats)) %>%
+  slice_head(n = 15)
+
+ggplot(top_paisos, aes(x = reorder(country, anys_acumulats), y = anys_acumulats)) +
+  geom_col(fill = "#e67e22", alpha = 0.8) +
+  coord_flip() +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Top 15 Països (Anys Acumulats)",
+    x = "País",
+    y = "Anys Actius"
+  )
+```
+
+# Conclusions
+
+L'anàlisi mostra onades històriques de creixement i variacions regionals significatives en els moviments d'autodeterminació.
